@@ -179,12 +179,10 @@ def get_results(df):
         print(f'{att} lsr done')
         mm_mean = choix.mm_pairwise(n_imgs, data, alpha=0.05) # 2 ish min, needs a bit more reg/aalpha to converge
         print(f'{att} mm done')
-        eb_mean, eb_cov = choix.ep_pairwise(n_imgs, data, alpha=0.05, model = 'logit') # 20 ish min
-
-        # result_dict = {'lsr_mean' : lsr_mean,'img' : att_data_dict[f'{att}_img_list']}
+        #eb_mean, eb_cov = choix.ep_pairwise(n_imgs, data, alpha=0.05, model = 'logit') # 20 ish min
         
-        #result_dict = {'lsr_mean' : lsr_mean, 'mm_mean' : mm_mean , 'img' : att_data_dict[f'{att}_img_list']}
-        result_dict = {'lsr_mean' : lsr_mean, 'mm_mean' : mm_mean , 'eb_mean' : eb_mean , 'img' : att_data_dict[f'{att}_img_list']}
+        result_dict = {'lsr_mean' : lsr_mean, 'mm_mean' : mm_mean , 'img' : att_data_dict[f'{att}_img_list']}
+        #result_dict = {'lsr_mean' : lsr_mean, 'mm_mean' : mm_mean , 'eb_mean' : eb_mean , 'img' : att_data_dict[f'{att}_img_list']}
 
         results_df = pd.DataFrame(result_dict)
 
@@ -197,7 +195,7 @@ def run_and_dump():
 
     for i in [1,3]:#[1,2,3]
         
-        df = get_df(1)
+        df = get_df(i)
         print_zero_ratio(df)
         dict_of_dfs = get_results(df)
 
