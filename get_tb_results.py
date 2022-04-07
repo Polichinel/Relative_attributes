@@ -15,7 +15,7 @@ import seaborn as sns
 import choix
 
 
-def get_df(att_dict = 1):
+def get_df(att_dict):
     """att_dict should be 1,2,3"""
 
     path = "/home/simon/Documents/Bodies/data/RA/att_dicts"
@@ -86,6 +86,8 @@ def analyse_network(G):
 
 def get_non_draw_connected_sub_df(df, att):
 
+    # COuld you also here remove nodes w/ only on edge?
+
     # remove draws
     non_draw_sub = df[(df[att] != (0,0)) & (df[att] != (1,1))][[att, 'img1', 'img2']]
 
@@ -96,14 +98,21 @@ def get_non_draw_connected_sub_df(df, att):
     g = nx.Graph()
     g.add_edges_from(edge_list_non_zero)
 
+    # remove one edges (TEST):
+    # to_be_removed = [x for  x in g.nodes() if g.degree(x) <= 1]
+    # for node in to_be_removed:
+    #     g.remove_node(node)
+
     # Get larges connected subset:
     connected_img = sorted(nx.connected_components(g), key = len, reverse=True)[0] # take the larges connected component - really the list you need.
 
     edge_list_connected = [(node1, node2) for node1, node2 in edge_list_non_zero if node1 in connected_img or node2 in connected_img]
+    #edge_list_connected = [(node1, node2) for node1, node2 in g.edges if node1 in connected_img or node2 in connected_img]
 
     # Larges connected subgraph gc - just to check
     gc = nx.Graph()
     gc.add_edges_from(edge_list_connected)
+
     analyse_network(gc)
     
     # sub df
