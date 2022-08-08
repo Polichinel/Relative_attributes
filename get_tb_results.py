@@ -15,7 +15,7 @@ import seaborn as sns
 import choix
 
 
-def get_df(att_dict):
+def get_df(att_dict_number):
     """att_dict should be 1,2,3"""
 
     path = "/home/simon/Documents/Bodies/data/RA/att_dicts"
@@ -27,9 +27,9 @@ def get_df(att_dict):
     with open(file_path, 'rb') as file:
         
         # Call load method to deserialze
-        pregenerated_indx_list = pickle.load(file)
+        indx_list = pickle.load(file)
 
-    file_name2 = f"att_dict_{att_dict}.pkl"
+    file_name2 = f"att_dict_{att_dict_number}.pkl"
     file_path = os.path.join(path, file_name2)
 
     if os.path.exists(file_path):
@@ -39,8 +39,19 @@ def get_df(att_dict):
         
             # Call load method to deserialze
             att_dict = pickle.load(file)
+                # fix for att_2. Hope ecerything else is alright
+        
+        # fix for att_2. Damage control.
+        if att_dict_number == 2:
 
-        df_img = pd.DataFrame(pregenerated_indx_list, columns=['img1', 'img2'])
+            # get own index list, beacuse student did not use pregen list...
+            indx_list = [(i[0].split('/')[-1],i[1].split('/')[-1]) for i in att_dict['indx']]
+
+            att_dict['indx_indicator'] = len(att_dict['indx']) # change the name and content to match afterwards.
+            att_dict.pop('indx', None)
+
+
+        df_img = pd.DataFrame(indx_list, columns=['img1', 'img2'])
         df_att = pd.DataFrame(att_dict, columns= att_dict.keys())
         df_att.drop(['indx_indicator'], axis=1, inplace= True)
         df = df_att.join(df_img)
@@ -202,7 +213,7 @@ def get_results(df):
 
 def run_and_dump():
 
-    for i in [1,3]:#[1,2,3]
+    for i in [1,2,3]:
         
         df = get_df(i)
         print_zero_ratio(df)
