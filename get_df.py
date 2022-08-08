@@ -1,13 +1,9 @@
-# if local run in new_torch_env
+# if local run in new_torch_env but should run on most
 
 import os
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
-
-import cv2
-import matplotlib.pyplot as plt
 
 import pickle
 
