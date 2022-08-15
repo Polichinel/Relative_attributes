@@ -160,6 +160,7 @@ def train(model, loader, criterion, optimizer, config):
     total_batches = len(loader) * config.epochs
     example_ct = 0  # number of examples seen
     batch_ct = 0
+    running_loss = 0.0
 
     for epoch in range(config.epochs):
         for _, (images, labels) in enumerate(loader):
