@@ -231,9 +231,9 @@ if __name__ == "__main__":
 
     # choose one model
     # model_name = 'convnext_tiny' # last block is called "classifier" 
-    model_name = 'efficientnet_v2_s' # last block is called "classifier" 
+    # model_name = 'efficientnet_v2_s' # last block is called "classifier" 
     # model_name = 'regnet_x_8gf' # last block is called "fc" 
-    # model_name = 'swin_t'  # last block is called "head" 
+    model_name = 'swin_t'  # last block is called "head" 
     # model_name = 'wide_resnet50_2'  # last block is called "fc" 
 
     hyperparameters = {
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     "learning_rate": 0.001,
     "weight_decay" : 0.01,
     "classes" : 2,
-    "epochs": 32,
+    "epochs": 64,
     "batch_size": 16
     }
 
