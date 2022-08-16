@@ -263,7 +263,7 @@ def test(model, test_loader):
 def model_pipeline(hyperparameters):
 
     # tell wandb to get started
-    with wandb.init(project="test_project_0", entity="nornir", config=hyperparameters):
+    with wandb.init(project="test_project_0", entity="nornir", config=hyperparameters): #new projrct name!!!
       # access all HPs through wandb.config, so logging matches execution!
       config = wandb.config
 
@@ -286,7 +286,6 @@ def model_pipeline(hyperparameters):
 if __name__ == "__main__":
 
     wandb.login()
-    #wandb.init(project="test_project_0", entity="nornir")
 
     input_dict1 = {'a': 'convnext_tiny',
                   'b': 'efficientnet_v2_s',
@@ -294,24 +293,20 @@ if __name__ == "__main__":
                   'e' : 'swin_t',
                   'f' : 'wide_resnet50_2'}
 
-    model_string = f"Choose model:\n a) {input_dict1['a']}\n b) {input_dict1['b']}\n c) {input_dict1['c']}\n d) {input_dict1['d']}\n e) {input_dict1['e']}\n f) {input_dict1['f']}"
+    model_string = f"Choose model:\n "
+    for k in input_dict1.keys():
+        model_string += f"{k}) {input_dict1[k]}\n "
+
     print(model_string)
 
-    input_string = input()
-    if input_string in ['a', 'b', 'c', 'd', 'e', 'f']:
-        model_name = input_dict1[input_string]
-        print(f'You choose {input_string} : {model_name}')
+    input_string1 = input()
+    if input_string1 in ['a', 'b', 'c', 'd', 'e', 'f']:
+        model_name = input_dict1[input_string1]
+        print(f'You choose {input_string1} : {model_name}')
 
     else:
         print('Wrong input')
         exit()
-
-    # old choose one model
-    # model_name = 'convnext_tiny' # last block is called "classifier" 
-    #model_name = 'efficientnet_v2_s' # last block is called "classifier" 
-    # model_name = 'regnet_x_8gf' # last block is called "fc" 
-    # model_name = 'swin_t'  # last block is called "head" 
-    # model_name = 'wide_resnet50_2'  # last block is called "fc" 
 
     input_dict2 = {'a' : 'all_negative_emotions_t1',
                    'b' : 'all_mass_protest_ens',
@@ -324,15 +319,17 @@ if __name__ == "__main__":
                    'i' : 'all_formal',
                    'j' : 'all_damaged_property'}
 
-    # attribute = 'all_mass_protest' # or maybe this is a loop. Or both are loop?
 
-    att_string = f"Choose attribute:\n a) {input_dict2['a']}\n b) {input_dict2['b']}\n c) {input_dict2['c']}\n d) {input_dict2['d']}\n e) {input_dict2['e']}\n f) {input_dict2['f']}"
+    att_string = f"Choose attribute:\n "
+    for k in input_dict2.keys():
+        att_string += f"{k}) {input_dict2[k]}\n "
+
     print(att_string)
 
-    input_string = input()
-    if input_string in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']:
-        attribute = input_dict2[input_string]
-        print(f'You choose {input_string} : {attribute}')
+    input_string2 = input()
+    if input_string2 in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']:
+        attribute = input_dict2[input_string2]
+        print(f'You choose {input_string2} : {attribute}')
 
     else:
         print('Wrong input')
