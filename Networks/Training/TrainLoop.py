@@ -239,21 +239,30 @@ def train(model, loader, criterion, optimizer, config):
 
 def test(model, test_loader):
     model.eval()
+    test_criterion = nn.MSELoss()
 
     # Run the model on some test examples
     with torch.no_grad():
-        correct, total = 0, 0
+        #correct, total = 0, 0
+        total = 0
+        RMSE_loss = 0
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            #_, predicted = torch.max(outputs.data, 1)
+            RMSE_loss += np.sqrt(test_criterion(outputs.squeeze(), labels))
 
-        print(f"Accuracy of the model on the {total} " +
-              f"test images: {100 * correct / total}%")
+            total += labels.size(0)
+            #correct += (predicted == labels).sum().item()
+
+        # print(f"Accuracy of the model on the {total} " +
+        #       f"test images: {100 * correct / total}%")
         
-        wandb.log({"test_accuracy": correct / total})
+        print(f"Average RMSE of the model on the {total} " +
+              f"test images: {RMSE_loss / total}%")
+
+
+        wandb.log({"test_rmse": RMSE_loss / total})
 
     # Save the model in the exchangeable ONNX format
     torch.onnx.export(model, images, "model.onnx")
