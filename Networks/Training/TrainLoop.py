@@ -1,17 +1,21 @@
 import numpy as np
 #import pandas as pd
-#import pickle
-#import time
+import pickle
+import time
 import os
-#import copy
+import copy
 import sys
 #import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 import torchvision
 from torchvision import datasets, models, transforms
+from torchvision.io import read_image
+
 
 # models
 from torchvision.models import convnext_tiny, ConvNeXt_Tiny_Weights
@@ -31,6 +35,42 @@ print(torchvision.__version__)
 
 
 # Fuctions - could go in own script
+
+# you custom RA dataset class
+class CustomImageDataset(Dataset):
+    def __init__(self, attribute_dict, attribute, img_dir, train = True, transform=None, target_transform=None):
+
+        # need to handle nan : do it in the df to dict..
+
+        n_img = n_img = len(attribute_dict[f'{attribute}_ens_mean'])
+        n_train = int(n_img * 0.8)
+
+        if train == True:
+
+            self.img_labels = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_mean'])))[:n_train] # which is not a label but a score.. # you do not handles nans right now... 
+            self.img_std = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_std'])))[:n_train] # you do not handles nans right now...
+        
+        elif train == False:
+            self.img_labels = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_mean'])))[n_train:] # which is not a label but a score.. # you do not handles nans right now... 
+            self.img_std = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_std'])))[n_train:]
+
+        self.img_dir = img_dir
+        self.transform = transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.img_dir, self.img_labels[idx, 0])
+        image = read_image(img_path)
+        label = np.float32(self.img_labels[idx, 1]) #it is turned to a str above so we turn it back here
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            label = self.target_transform(label)
+        return image, label
+
 
 #Get the models
 def get_models():
@@ -78,9 +118,11 @@ def change_head(model_name, model, num_classes):
 
 
 # data loader
-def make_loader(batch_size, weights):
+def make_loader(batch_size, weights, attribute):
 
     # this is the thiong that has to change for RA...
+    # need to get attribute
+
 
     data_transforms = {
     'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip()]), 
@@ -88,18 +130,34 @@ def make_loader(batch_size, weights):
     }
 
     # Load data - a lot needs to change here since you have a score for each image and not a class (given by dir)
-    # data_dir = '/home/simon/Documents/Bodies/data/RA/Tutorial/hymenoptera_data' #local
-    data_dir = '/home/projects/ku_00017/data/raw/beesNants/hymenoptera_data' # computerome
+    data_dir = '/home/simon/Documents/Bodies/data/RA/Tutorial/hymenoptera_data' #local
+    # data_dir = '/home/projects/ku_00017/data/raw/beesNants/hymenoptera_data' # computerome
 
 
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
+    # Going into make loader -------------------------------
 
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
+    dict_dir = '/home/simon/Documents/Bodies/data/RA/dfs/' #local
+    img_dir = '/media/simon/Seagate Expansion Drive/images_spanner' #local
 
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
-    class_names = image_datasets['train'].classes
+    with open(f'{dict_dir}ra_ens_annotated_dict.pkl', 'rb') as file:
+        attribute_dict = pickle.load(file)
 
-    return dataloaders, dataset_sizes, class_names
+    dataloaders = {}
+    image_datasets = {}
+    
+    image_datasets['train'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=True , transform=data_transforms['train'])
+    dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=4, shuffle=True)
+
+    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['train'])
+    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=4, shuffle=True)
+
+    #image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
+    #dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
+
+    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
+    #class_names = image_datasets['train'].classes
+
+    return dataloaders, dataset_sizes #class_names # what did you use class names for?
 
 def make(config, model_name):
 
@@ -119,15 +177,16 @@ def make(config, model_name):
         param.requires_grad = True
     
     # Make the data
-    dataloaders, dataset_sizes, class_names = make_loader(batch_size=config.batch_size, weights = weights)
-
+    #dataloaders, dataset_sizes, class_names = make_loader(batch_size=config.batch_size, weights = weights)
+    dataloaders, dataset_sizes = make_loader(batch_size=config.batch_size,  weights = weights, attribute = config.attribute)
+    
     # Make the loss and optimizer
-    criterion = nn.CrossEntropyLoss()
+    #criterion = nn.CrossEntropyLoss()
+    criterion = nn.MSELoss()
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=config.learning_rate, weight_decay = config.weight_decay)
 
-    return model, criterion, optimizer, dataloaders, dataset_sizes, class_names
-
+    return model, criterion, optimizer, dataloaders, dataset_sizes #, class_names
 
 def train_log(loss, example_ct, epoch):
     # Where the magic happens
@@ -140,7 +199,7 @@ def train_batch(images, labels, model, optimizer, criterion):
     
     # Forward pass ➡
     outputs = model(images)
-    loss = criterion(outputs, labels)
+    loss = criterion(outputs.squeeze(), labels)
     
     # Backward pass ⬅
     optimizer.zero_grad()
@@ -211,7 +270,7 @@ def model_pipeline(hyperparameters):
       model_name = config['model_name']
 
       # make the model, data, and optimization problem
-      model, criterion, optimizer, dataloaders, dataset_sizes, class_names = make(config, model_name)
+      model, criterion, optimizer, dataloaders, dataset_sizes = make(config, model_name)
       print(model)
 
       # and use them to train the model
@@ -229,19 +288,64 @@ if __name__ == "__main__":
     wandb.login()
     #wandb.init(project="test_project_0", entity="nornir")
 
-    # choose one model
+    input_dict1 = {'a': 'convnext_tiny',
+                  'b': 'efficientnet_v2_s',
+                  'c': 'regnet_x_8gf',
+                  'e' : 'swin_t',
+                  'f' : 'wide_resnet50_2'}
+
+    model_string = f"Choose model:\n a) {input_dict1['a']}\n b) {input_dict1['b']}\n c) {input_dict1['c']}\n d) {input_dict1['d']}\n e) {input_dict1['e']}\n f) {input_dict1['f']}"
+    print(model_string)
+
+    input_string = input()
+    if input_string in ['a', 'b', 'c', 'd', 'e', 'f']:
+        model_name = input_dict1[input_string]
+        print(f'You choose {input_string} : {model_name}')
+
+    else:
+        print('Wrong input')
+        exit()
+
+    # old choose one model
     # model_name = 'convnext_tiny' # last block is called "classifier" 
-    # model_name = 'efficientnet_v2_s' # last block is called "classifier" 
+    #model_name = 'efficientnet_v2_s' # last block is called "classifier" 
     # model_name = 'regnet_x_8gf' # last block is called "fc" 
     # model_name = 'swin_t'  # last block is called "head" 
-    model_name = 'wide_resnet50_2'  # last block is called "fc" 
+    # model_name = 'wide_resnet50_2'  # last block is called "fc" 
+
+    input_dict2 = {'a' : 'all_negative_emotions_t1',
+                   'b' : 'all_mass_protest_ens',
+                   'c' : 'all_militarized',
+                   'd' : 'all_urban',
+                   'e' : 'all_negative_emotions_t2',
+                   'f' : 'all_privat',
+                   'g' : 'all_public',
+                   'h' : 'all_rural',
+                   'i' : 'all_formal',
+                   'j' : 'all_damaged_property'}
+
+    # attribute = 'all_mass_protest' # or maybe this is a loop. Or both are loop?
+
+    att_string = f"Choose attribute:\n a) {input_dict2['a']}\n b) {input_dict2['b']}\n c) {input_dict2['c']}\n d) {input_dict2['d']}\n e) {input_dict2['e']}\n f) {input_dict2['f']}"
+    print(att_string)
+
+    input_string = input()
+    if input_string in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']:
+        attribute = input_dict2[input_string]
+        print(f'You choose {input_string} : {attribute}')
+
+    else:
+        print('Wrong input')
+        exit()
+    # ---------------------------------------
 
     hyperparameters = {
     "model_name" : model_name,
+    "attribute" : attribute,
     "learning_rate": 0.001,
     "weight_decay" : 0.01,
-    "classes" : 2,
-    "epochs": 64,
+    "classes" : 1,
+    "epochs": 32,
     "batch_size": 16
     }
 
