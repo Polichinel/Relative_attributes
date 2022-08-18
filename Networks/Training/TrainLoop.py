@@ -354,8 +354,8 @@ if __name__ == "__main__":
     "learning_rate": 0.001,
     "weight_decay" : 0.01,
     "classes" : 1,
-    "epochs": 32,
-    "batch_size": 16
+    "epochs": 8,
+    "batch_size": 64
     }
 
     # Build, train and analyze the model with the pipeline
