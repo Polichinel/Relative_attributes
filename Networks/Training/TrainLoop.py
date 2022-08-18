@@ -253,7 +253,7 @@ def test(model, test_loader):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             #_, predicted = torch.max(outputs.data, 1)
-            RMSE_loss += np.sqrt(test_criterion(outputs.squeeze(), labels))
+            RMSE_loss += np.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
 
             total += labels.size(0)
             #correct += (predicted == labels).sum().item()
