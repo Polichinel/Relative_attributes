@@ -139,7 +139,7 @@ def make_loader(batch_size, weights, attribute):
     #dict_dir = '/home/simon/Documents/Bodies/data/RA/dfs/' #local
     #img_dir = '/media/simon/Seagate Expansion Drive/images_spanner' #local
 
-    dict_dir = '/home/projects/ku_00017/data/raw/bodies/RA_annotations/ra_ens_annotated_dict.pkl' # computerome
+    dict_dir = '/home/projects/ku_00017/data/raw/bodies/RA_annotations/' # computerome
     img_dir = '/home/projects/ku_00017/data/raw/bodies/images_spanner' # computerome
 
     with open(f'{dict_dir}ra_ens_annotated_dict.pkl', 'rb') as file:
