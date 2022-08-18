@@ -187,7 +187,7 @@ def make(config, model_name):
     #criterion = nn.CrossEntropyLoss()
     criterion = nn.MSELoss()
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=config.learning_rate, weight_decay = config.weight_decay)
+        model.parameters(), lr=config.learning_rate, weight_decay = config.weight_decay, betas = config.betas)
 
     return model, criterion, optimizer, dataloaders, dataset_sizes #, class_names
 
@@ -353,6 +353,7 @@ if __name__ == "__main__":
     "attribute" : attribute,
     "learning_rate": 0.004,
     "weight_decay" : 0.05,
+    'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 4,
     "batch_size": 64
