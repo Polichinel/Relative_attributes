@@ -234,9 +234,9 @@ def train(model, loader, criterion, optimizer, config):
             running_loss += loss
 
             # Report metrics every 20th batch - not running average right now
-            if ((batch_ct + 1) % 10) == 0:
+            if ((batch_ct + 1) % 100) == 0:
                 #train_log(loss, example_ct, epoch) # this is the wand part
-                train_log(running_loss/10, example_ct, epoch)
+                train_log(running_loss/100, example_ct, epoch)
                 running_loss = 0.0 # reset
 
 
