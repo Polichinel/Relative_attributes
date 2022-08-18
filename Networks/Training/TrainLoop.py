@@ -130,14 +130,17 @@ def make_loader(batch_size, weights, attribute):
     }
 
     # Load data - a lot needs to change here since you have a score for each image and not a class (given by dir)
-    data_dir = '/home/simon/Documents/Bodies/data/RA/Tutorial/hymenoptera_data' #local
+    # data_dir = '/home/simon/Documents/Bodies/data/RA/Tutorial/hymenoptera_data' #local
     # data_dir = '/home/projects/ku_00017/data/raw/beesNants/hymenoptera_data' # computerome
 
 
     # Going into make loader -------------------------------
 
-    dict_dir = '/home/simon/Documents/Bodies/data/RA/dfs/' #local
-    img_dir = '/media/simon/Seagate Expansion Drive/images_spanner' #local
+    #dict_dir = '/home/simon/Documents/Bodies/data/RA/dfs/' #local
+    #img_dir = '/media/simon/Seagate Expansion Drive/images_spanner' #local
+
+    dict_dir = '/home/projects/ku_00017/data/raw/bodies/RA_annotations/ra_ens_annotated_dict.pkl' # computerome
+    img_dir = '/home/projects/ku_00017/data/raw/bodies/images_spanner' # computerome
 
     with open(f'{dict_dir}ra_ens_annotated_dict.pkl', 'rb') as file:
         attribute_dict = pickle.load(file)
