@@ -289,7 +289,7 @@ def model_pipeline(hyperparameters):
       train(model, dataloaders['train'], criterion, optimizer, config)
 
       # and test its final performance
-      test(model, dataloaders['val'])
+      test(model, dataloaders['test'])
 
     return model
 
@@ -354,7 +354,7 @@ if __name__ == "__main__":
     "learning_rate": 0.001,
     "weight_decay" : 0.01,
     "classes" : 1,
-    "epochs": 8,
+    "epochs": 4,
     "batch_size": 64
     }
 
