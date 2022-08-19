@@ -123,9 +123,9 @@ def make_loader(batch_size, weights, attribute):
     # this is the thiong that has to change for RA...
     # need to get attribute
 
-
+    #Should be in config
     data_transforms = {
-    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5)], transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)), 
+    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)]), 
     'val': transforms.Compose([weights.transforms()])
     }
 
