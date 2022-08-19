@@ -351,7 +351,7 @@ if __name__ == "__main__":
     hyperparameters = {
     "model_name" : model_name,
     "attribute" : attribute,
-    "learning_rate": 0.0005,
+    "learning_rate": 0.0001,
     "weight_decay" : 0.01,
     'betas' : (0.9, 0.999),
     "classes" : 1,
