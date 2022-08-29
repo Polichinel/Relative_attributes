@@ -355,7 +355,7 @@ if __name__ == "__main__":
     "weight_decay" : 0.05,
     'betas' : (0.9, 0.999),
     "classes" : 1,
-    "epochs": 16,
+    "epochs": 32,
     "batch_size": 256
     }
 
