@@ -149,10 +149,10 @@ def make_loader(batch_size, weights, attribute):
     image_datasets = {}
     
     image_datasets['train'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=True , transform=data_transforms['train'])
-    dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=4, shuffle=True)
+    dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
     image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['train'])
-    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=4, shuffle=True)
+    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=batch_size, shuffle=True)
 
     #image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
     #dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
@@ -253,7 +253,7 @@ def test(model, test_loader):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             #_, predicted = torch.max(outputs.data, 1)
-            RMSE_loss += np.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
+            RMSE_loss += torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
 
             total += labels.size(0)
             #correct += (predicted == labels).sum().item()
@@ -302,8 +302,8 @@ if __name__ == "__main__":
     input_dict1 = {'a': 'convnext_tiny',
                   'b': 'efficientnet_v2_s',
                   'c': 'regnet_x_8gf',
-                  'e' : 'swin_t',
-                  'f' : 'wide_resnet50_2'}
+                  'd' : 'swin_t',
+                  'e' : 'wide_resnet50_2'}
 
     model_string = f"Choose model:\n "
     for k in input_dict1.keys():
@@ -312,7 +312,7 @@ if __name__ == "__main__":
     print(model_string)
 
     input_string1 = input()
-    if input_string1 in ['a', 'b', 'c', 'd', 'e', 'f']:
+    if input_string1 in ['a', 'b', 'c', 'd', 'e']:
         model_name = input_dict1[input_string1]
         print(f'You choose {input_string1} : {model_name}')
 
@@ -356,7 +356,7 @@ if __name__ == "__main__":
     'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 32,
-    "batch_size": 256
+    "batch_size": 8
     }
 
     # Build, train and analyze the model with the pipeline
