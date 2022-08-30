@@ -356,7 +356,7 @@ if __name__ == "__main__":
     'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 32,
-    "batch_size": 8
+    "batch_size": 16
     }
 
     # Build, train and analyze the model with the pipeline
