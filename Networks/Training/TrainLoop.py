@@ -147,11 +147,11 @@ def make_loader(batch_size, weights, attribute):
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
     ####################################### RUNNING BS TEST ##########################
-    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['train'])
+    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['val']) #!!!!!!
     dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=4, shuffle=True)
     ####################################### RUNNING BS TEST ##########################
 
-    
+
     #image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
     #dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
 
