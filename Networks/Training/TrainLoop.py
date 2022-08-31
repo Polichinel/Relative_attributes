@@ -294,7 +294,6 @@ def model_pipeline(hyperparameters):
     return model
 
 
-
 if __name__ == "__main__":
 
     wandb.login()
@@ -356,7 +355,7 @@ if __name__ == "__main__":
     'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 32,
-    "batch_size": 32
+    "batch_size": 64
     }
 
     # Build, train and analyze the model with the pipeline
