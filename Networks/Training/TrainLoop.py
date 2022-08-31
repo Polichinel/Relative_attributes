@@ -126,7 +126,7 @@ def make_loader(batch_size, weights, attribute):
     #Should be in config
     data_transforms = {
     'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)]), 
-    'val': transforms.Compose([weights.transforms()])
+    'test': transforms.Compose([weights.transforms()])
     }
 
     # Going into make loader -------------------------------
@@ -147,7 +147,7 @@ def make_loader(batch_size, weights, attribute):
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
     ####################################### RUNNING BS TEST ##########################
-    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['val']) 
+    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['test']) 
     dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=4, shuffle=True)
     ####################################### RUNNING BS TEST ##########################
 
@@ -252,13 +252,13 @@ def test(model, test_loader):
             outputs = model(images)
             #_, predicted = torch.max(outputs.data, 1)
             RMSE_loss += torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
-
-            total += labels.size(0)
+            total += 1 # just number runs right? #labels.size(0)
             #correct += (predicted == labels).sum().item()
 
         # print(f"Accuracy of the model on the {total} " +
         #       f"test images: {100 * correct / total}%")
         
+
         print(f"Average RMSE of the model on the {total} " +
               f"test images: {RMSE_loss / total}%")
 
@@ -273,7 +273,7 @@ def test(model, test_loader):
 def model_pipeline(hyperparameters):
 
     # tell wandb to get started
-    with wandb.init(project="RA_experiments", entity="nornir", config=hyperparameters): #new projrct name!!!
+    with wandb.init(project="RA_experiments_new", entity="nornir", config=hyperparameters): #new projrct name!!!
       # access all HPs through wandb.config, so logging matches execution!
       config = wandb.config
 
@@ -353,7 +353,7 @@ if __name__ == "__main__":
     'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 32,
-    "batch_size": 64 # efficientnet_v2_s can max do 32 before running our of mem.
+    "batch_size": 16 # efficientnet_v2_s can max do 32 before running our of mem.
     }
 
     # Build, train and analyze the model with the pipeline
