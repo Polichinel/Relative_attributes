@@ -115,16 +115,9 @@ def make_loader(batch_size, weights, attribute):
     #Should be in config
     data_transforms = transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)])
     
-
-    # Load data - a lot needs to change here since you have a score for each image and not a class (given by dir)
-    # data_dir = '/home/simon/Documents/Bodies/data/RA/Tutorial/hymenoptera_data' #local
-    # data_dir = '/home/projects/ku_00017/data/raw/beesNants/hymenoptera_data' # computerome
-
-
-    # Going into make loader -------------------------------
-
-    #dict_dir = '/home/simon/Documents/Bodies/data/RA/dfs/' #local
-    #img_dir = '/media/simon/Seagate Expansion Drive/images_spanner' #local
+    ##################################################
+    # needs different transform for val even if it is in-sample...
+    ##################################################
 
     dict_dir = '/home/projects/ku_00017/data/raw/bodies/RA_annotations/' # computerome
     img_dir = '/home/projects/ku_00017/data/raw/bodies/images_spanner' # computerome
@@ -239,7 +232,7 @@ def test(model, test_loader):
             #_, predicted = torch.max(outputs.data, 1)
             RMSE_loss += torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
 
-            total += labels.size(0)
+            total += 1 #labels.size(0)
             #correct += (predicted == labels).sum().item()
 
         # print(f"Accuracy of the model on the {total} " +
