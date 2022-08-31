@@ -129,11 +129,6 @@ def make_loader(batch_size, weights, attribute):
     'val': transforms.Compose([weights.transforms()])
     }
 
-    # Load data - a lot needs to change here since you have a score for each image and not a class (given by dir)
-    # data_dir = '/home/simon/Documents/Bodies/data/RA/Tutorial/hymenoptera_data' #local
-    # data_dir = '/home/projects/ku_00017/data/raw/beesNants/hymenoptera_data' # computerome
-
-
     # Going into make loader -------------------------------
 
     #dict_dir = '/home/simon/Documents/Bodies/data/RA/dfs/' #local
@@ -151,9 +146,12 @@ def make_loader(batch_size, weights, attribute):
     image_datasets['train'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=True , transform=data_transforms['train'])
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
+    ####################################### RUNNING BS TEST ##########################
     image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['train'])
-    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=batch_size, shuffle=True)
+    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=4, shuffle=True)
+    ####################################### RUNNING BS TEST ##########################
 
+    
     #image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
     #dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
 
@@ -240,7 +238,7 @@ def train(model, loader, criterion, optimizer, config):
                 running_loss = 0.0 # reset
 
 
-def test(model, test_loader):
+def test(model, test_loader): 
     model.eval()
     test_criterion = nn.MSELoss()
 
@@ -355,7 +353,7 @@ if __name__ == "__main__":
     'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 32,
-    "batch_size": 64
+    "batch_size": 64 # efficientnet_v2_s can max do 32 before running our of mem.
     }
 
     # Build, train and analyze the model with the pipeline
