@@ -147,7 +147,7 @@ def make_loader(batch_size, weights, attribute):
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
     ####################################### RUNNING BS TEST ##########################
-    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['val']) #!!!!!!
+    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['val']) 
     dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=4, shuffle=True)
     ####################################### RUNNING BS TEST ##########################
 
