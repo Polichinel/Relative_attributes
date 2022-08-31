@@ -113,7 +113,7 @@ def make_loader(batch_size, weights, attribute):
     # need to get attribute
 
     #Should be in config
-    data_transforms = transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)]), 
+    data_transforms = transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)])
     
 
     # Load data - a lot needs to change here since you have a score for each image and not a class (given by dir)
