@@ -112,12 +112,11 @@ def make_loader(batch_size, weights, attribute):
     # this is the thiong that has to change for RA...
     # need to get attribute
 
-    #Should be in config
-    data_transforms = transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)])
-    
-    ##################################################
-    # needs different transform for val even if it is in-sample...
-    ##################################################
+   #Should be in config
+    data_transforms = {
+    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)]), 
+    'val': transforms.Compose([weights.transforms()])
+    }
 
     dict_dir = '/home/projects/ku_00017/data/raw/bodies/RA_annotations/' # computerome
     img_dir = '/home/projects/ku_00017/data/raw/bodies/images_spanner' # computerome
@@ -125,17 +124,19 @@ def make_loader(batch_size, weights, attribute):
     with open(f'{dict_dir}ra_ens_annotated_dict.pkl', 'rb') as file:
         attribute_dict = pickle.load(file)
 
-    #dataloaders = {}
-    #image_datasets = {}
+    dataloaders = {}
+    image_datasets = {}
     
-    # CHANGE!!------------------------
-    image_dataset = CustomImageDataset(attribute_dict, attribute, img_dir, transform=data_transforms)
-    dataloader = DataLoader(image_dataset, batch_size=batch_size, shuffle=True)
+    #!!! Not the the only difference now is the transfomation applied. the images are here the same.
+    image_datasets['train'] = CustomImageDataset(attribute_dict, attribute, img_dir, transform=data_transforms['train'])
+    dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
-    dataset_size = len(image_dataset)
-    #class_names = image_datasets['train'].classes
+    image_datasets['val'] = CustomImageDataset(attribute_dict, attribute, img_dir, transform=data_transforms['val']) 
+    dataloaders['val'] = DataLoader(image_datasets['val'], batch_size=batch_size, shuffle=True)
 
-    return dataloader, dataset_size #class_names # what did you use class names for?
+    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
+
+    return dataloaders, dataset_sizes #class_names # what did you use class names for?
 
 def make(config, model_name):
 
@@ -154,17 +155,15 @@ def make(config, model_name):
     for param in list(model.parameters()):
         param.requires_grad = True
     
-    # Make the data
-    #dataloaders, dataset_sizes, class_names = make_loader(batch_size=config.batch_size, weights = weights)
-    dataloaders, dataset_size = make_loader(batch_size=config.batch_size,  weights = weights, attribute = config.attribute)
+    # Make the data.. Why here?
+    dataloaders, dataset_sizes = make_loader(batch_size=config.batch_size,  weights = weights, attribute = config.attribute)
     
     # Make the loss and optimizer
-    #criterion = nn.CrossEntropyLoss()
     criterion = nn.MSELoss()
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=config.learning_rate, weight_decay = config.weight_decay, betas = config.betas)
 
-    return model, criterion, optimizer, dataloaders, dataset_size #, class_names
+    return model, criterion, optimizer, dataloaders, dataset_sizes #, class_names
 
 def train_log(loss, example_ct, epoch):
     # Where the magic happens
@@ -216,37 +215,33 @@ def train(model, loader, criterion, optimizer, config):
 
 
 
-# CHANGE!!------------------------ this will just be full insample
-def test(model, test_loader):
+def test(model, loader): 
     model.eval()
     test_criterion = nn.MSELoss()
 
-    # Run the model on some test examples
     with torch.no_grad():
-        #correct, total = 0, 0
+        
         total = 0
-        RMSE_loss = 0
-        for images, labels in test_loader:
+        RMSE_list = []
+
+        for images, labels in loader:
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
-            #_, predicted = torch.max(outputs.data, 1)
-            RMSE_loss += torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
 
-            total += 1 #labels.size(0)
-            #correct += (predicted == labels).sum().item()
+            RMSE_loss = torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
+            RMSE_list.append(RMSE_loss.detach().numpy().item())
 
-        # print(f"Accuracy of the model on the {total} " +
-        #       f"test images: {100 * correct / total}%")
-        
-        print(f"Average RMSE of the model on the {total} " +
-              f"test images: {RMSE_loss / total}%")
+            total += labels.size(0) #so now you get the number of images - but not the number of mini batches. This is ok when you do not use it to norm.
 
-
-        wandb.log({"final_rmse": RMSE_loss / total})
+        RMSE_array = np.array(RMSE_list)
+        print(f"Average RMSE of the model on the {total} images (in-sample): {RMSE_array.mean()}")
+        wandb.log({"rmse": RMSE_array.mean()})
+        wandb.log({"rmse_dist": RMSE_array})
 
     # Save the model in the exchangeable ONNX format
     torch.onnx.export(model, images, "model.onnx")
     wandb.save("model.onnx")
+
 
 
 def model_pipeline(hyperparameters):
@@ -259,16 +254,16 @@ def model_pipeline(hyperparameters):
       model_name = config['model_name']
 
       # make the model, data, and optimization problem
-      model, criterion, optimizer, dataloader, dataset_size = make(config, model_name)
+      model, criterion, optimizer, dataloaders, dataset_size = make(config, model_name)
       print(model)
 
       # CHANGE!!------------------------
       # and use them to train the model
-      train(model, dataloader, criterion, optimizer, config)
+      train(model, dataloaders['train'], criterion, optimizer, config)
 
       # CHANGE!!------------------------
       # and test its final performance
-      test(model, dataloader)
+      test(model, dataloaders['val'])
 
     return model
 
@@ -341,6 +336,5 @@ if __name__ == "__main__":
     # Build, train and analyze the model with the pipeline
     model = model_pipeline(hyperparameters)
 
-    # save model and weights - computerome path.
     PATH = f"/home/projects/ku_00017/people/simpol/scripts/bodies/Relative_attributes/Networks/Done_models/{model_name}_{attribute}.pth"
     torch.save(model.state_dict(), PATH)
