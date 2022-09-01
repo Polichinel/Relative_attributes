@@ -146,20 +146,12 @@ def make_loader(batch_size, weights, attribute):
     image_datasets['train'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=True , transform=data_transforms['train'])
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
-    ####################################### RUNNING BS TEST ##########################
     image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['test']) 
-    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=4, shuffle=True)
-    ####################################### RUNNING BS TEST ##########################
-
-
-    #image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
-    #dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
+    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=batch_size, shuffle=True)
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
-    #class_names = image_datasets['train'].classes
 
-    return dataloaders, dataset_sizes #class_names # what did you use class names for?
-
+    return dataloaders, dataset_sizes 
 def make(config, model_name):
 
     # Make the model
@@ -242,28 +234,24 @@ def test(model, test_loader):
     model.eval()
     test_criterion = nn.MSELoss()
 
-    # Run the model on some test examples
     with torch.no_grad():
-        #correct, total = 0, 0
+        
         total = 0
-        RMSE_loss = 0
+        RMSE_list = []
+
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
-            #_, predicted = torch.max(outputs.data, 1)
-            RMSE_loss += torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
-            total += 1 # just number runs right? #labels.size(0)
-            #correct += (predicted == labels).sum().item()
 
-        # print(f"Accuracy of the model on the {total} " +
-        #       f"test images: {100 * correct / total}%")
-        
+            RMSE_loss = torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
+            RMSE_list.append(RMSE_loss.detach().numpy().item())
 
-        print(f"Average RMSE of the model on the {total} " +
-              f"test images: {RMSE_loss / total}%")
+            total += labels.size(0) #so now you get the number of images - but not the number of mini batches. This is ok when you do not use it to norm.
 
-
-        wandb.log({"test_rmse": RMSE_loss / total})
+        RMSE_array = np.array(RMSE_list)
+        print(f"Average RMSE of the model on the {total} test images: {RMSE_array.mean()}")
+        wandb.log({"test_rmse": RMSE_array.mean()})
+        wandb.log({"test_rmse_dist": RMSE_array})
 
     # Save the model in the exchangeable ONNX format
     torch.onnx.export(model, images, "model.onnx")
