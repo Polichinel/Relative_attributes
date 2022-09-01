@@ -213,11 +213,17 @@ def train(model, loader, criterion, optimizer, config):
     example_ct = 0  # number of examples seen
     batch_ct = 0
     running_loss = 0.0
+    train_RMSE_list = [] # only used in the last round
 
-    for epoch in range(config.epochs):
+    for epoch in range(config.epochs):             
+
         for _, (images, labels) in enumerate(loader):
 
             loss = train_batch(images, labels, model, optimizer, criterion)
+        
+            if epoch == config.epochs-1: # if it is the last round
+                train_RMSE_list.append(torch.sqrt(loss).detach().cpu().numpy().item())
+            
             example_ct +=  len(images)
             batch_ct += 1
 
@@ -228,7 +234,10 @@ def train(model, loader, criterion, optimizer, config):
                 #train_log(loss, example_ct, epoch) # this is the wand part
                 train_log(running_loss/100, example_ct, epoch)
                 running_loss = 0.0 # reset
-
+    
+    train_RMSE_array = np.array(train_RMSE_list)
+    wandb.log({"train_rmse": train_RMSE_array.mean()})
+    wandb.log({"train_rmse_dist": train_RMSE_array})
 
 def test(model, test_loader): 
     model.eval()
