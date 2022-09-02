@@ -1,3 +1,7 @@
+# you need to think about transformations... Are there too many. ONe of the only other things you changed while fixing the rsme was removing the transformation for the test img
+
+
+
 import numpy as np
 #import pandas as pd
 import pickle
@@ -40,13 +44,12 @@ print(torchvision.__version__)
 class CustomImageDataset(Dataset):
     def __init__(self, attribute_dict, attribute, img_dir, train = True, transform=None, target_transform=None):
 
-        # need to handle nan : do it in the df to dict..
+        # Taget transform could be sude if you want the draw the score from a dist using the ens_std
 
         n_img = n_img = len(attribute_dict[f'{attribute}_ens_mean'])
-        n_train = int(n_img * 0.8)
+        n_train = int(n_img * 0.8) # are we sur this indexing is "random" enough...
 
         if train == True:
-
             self.img_labels = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_mean'])))[:n_train] # which is not a label but a score.. # you do not handles nans right now... 
             self.img_std = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_std'])))[:n_train] # you do not handles nans right now...
         
@@ -147,7 +150,7 @@ def make_loader(batch_size, weights, attribute):
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
     image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['test']) 
-    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=batch_size, shuffle=True)
+    dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=batch_size, shuffle=True) #just set False...
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
 
@@ -184,10 +187,11 @@ def make(config, model_name):
     return model, criterion, optimizer, dataloaders, dataset_sizes #, class_names
 
 
-def train_log(loss, example_ct, epoch):
+def train_log(loss, val_loss, example_ct, epoch):
     # Where the magic happens
     wandb.log({"epoch": epoch, "loss": loss}, step=example_ct)
-    print(f"Loss after " + str(example_ct).zfill(5) + f" examples: {loss:.3f}")
+    wandb.log({"epoch": epoch, "val_loss": val_loss}, step=example_ct)
+    print(f"Loss after " + str(example_ct).zfill(5) + f" examples: {loss:.3f}. val: {val_loss:.3f}")
 
 
 def train_batch(images, labels, model, optimizer, criterion):
@@ -206,21 +210,31 @@ def train_batch(images, labels, model, optimizer, criterion):
 
     return loss
 
+def val_loss(test_loader, model, criterion): # new
 
-def train(model, loader, criterion, optimizer, config):
+    with torch.no_grad():
+        test_images, test_labels = next(iter(test_loader))
+        test_images, test_labels = test_images.to(device), test_labels.to(device)
+        test_outputs = model(test_images)
+        test_loss = criterion(test_outputs.squeeze(), test_labels)
+
+    return test_loss
+
+
+def train(model, train_loader, test_loader, criterion, optimizer, config):
     # Tell wandb to watch what the model gets up to: gradients, weights, and more!
     wandb.watch(model, criterion, log="all", log_freq=10)
 
     # Run training and track with wandb
-    total_batches = len(loader) * config.epochs
     example_ct = 0  # number of examples seen
     batch_ct = 0
     running_loss = 0.0
+    running_val_loss = 0.0 #NEW
     train_RMSE_list = [] # only used in the last round
 
     for epoch in range(config.epochs):             
 
-        for _, (images, labels) in enumerate(loader):
+        for _, (images, labels) in enumerate(train_loader):
 
             loss = train_batch(images, labels, model, optimizer, criterion)
         
@@ -231,12 +245,14 @@ def train(model, loader, criterion, optimizer, config):
             batch_ct += 1
 
             running_loss += loss
+            running_val_loss += val_loss(test_loader, model, criterion)
 
             # Report metrics every 20th batch - not running average right now
             if ((batch_ct + 1) % 100) == 0:
                 #train_log(loss, example_ct, epoch) # this is the wand part
-                train_log(running_loss/100, example_ct, epoch)
+                train_log(running_loss/100, running_val_loss/100, example_ct, epoch)
                 running_loss = 0.0 # reset
+                running_val_loss = 0.0 # reset
     
     train_RMSE_array = np.array(train_RMSE_list)
     wandb.log({"train_rmse": train_RMSE_array.mean()})
