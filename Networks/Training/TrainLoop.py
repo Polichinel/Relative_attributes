@@ -364,11 +364,11 @@ if __name__ == "__main__":
     hyperparameters = {
     "model_name" : model_name,
     "attribute" : attribute,
-    "learning_rate": 0.0001,
+    "learning_rate": 0.001,
     "weight_decay" : 0.05,
     'betas' : (0.9, 0.999),
     "classes" : 1,
-    "epochs": 16,
+    "epochs": 32,
     "batch_size": 32 # efficientnet_v2_s can max do 32 before running our of mem.
     }
 
