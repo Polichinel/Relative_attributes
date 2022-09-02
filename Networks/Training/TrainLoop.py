@@ -152,6 +152,8 @@ def make_loader(batch_size, weights, attribute):
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
 
     return dataloaders, dataset_sizes 
+
+
 def make(config, model_name):
 
     # Make the model
@@ -180,6 +182,7 @@ def make(config, model_name):
         model.parameters(), lr=config.learning_rate, weight_decay = config.weight_decay, betas = config.betas)
 
     return model, criterion, optimizer, dataloaders, dataset_sizes #, class_names
+
 
 def train_log(loss, example_ct, epoch):
     # Where the magic happens
@@ -252,8 +255,8 @@ def test(model, test_loader):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
 
-            RMSE_loss = torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
-            RMSE_list.append(RMSE_loss.detach().numpy().item())
+            test_loss = test_criterion(outputs.squeeze(), labels)
+            RMSE_list.append(torch.sqrt(test_loss).detach().cpu().numpy().item())
 
             total += labels.size(0) #so now you get the number of images - but not the number of mini batches. This is ok when you do not use it to norm.
 
@@ -350,7 +353,7 @@ if __name__ == "__main__":
     'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 16,
-    "batch_size": 16 # efficientnet_v2_s can max do 32 before running our of mem.
+    "batch_size": 32 # efficientnet_v2_s can max do 32 before running our of mem.
     }
 
     # Build, train and analyze the model with the pipeline
