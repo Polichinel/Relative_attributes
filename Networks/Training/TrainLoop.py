@@ -300,7 +300,7 @@ def model_pipeline(hyperparameters):
       print(model)
 
       # and use them to train the model
-      train(model, dataloaders['train'], criterion, optimizer, config)
+      train(model, dataloaders['train'], dataloaders['test'], criterion, optimizer, config)
 
       # and test its final performance
       test(model, dataloaders['test'])
