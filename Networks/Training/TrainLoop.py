@@ -349,7 +349,7 @@ if __name__ == "__main__":
     "weight_decay" : 0.05,
     'betas' : (0.9, 0.999),
     "classes" : 1,
-    "epochs": 32,
+    "epochs": 16,
     "batch_size": 16 # efficientnet_v2_s can max do 32 before running our of mem.
     }
 
