@@ -149,7 +149,7 @@ def make_loader(batch_size, weights, attribute):
     image_datasets['train'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=True , transform=data_transforms['train'])
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
-    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['test']) 
+    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['train']) # JUST TO SEE!!! 
     dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=batch_size, shuffle=True) #just set False...
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
@@ -364,7 +364,7 @@ if __name__ == "__main__":
     hyperparameters = {
     "model_name" : model_name,
     "attribute" : attribute,
-    "learning_rate": 0.001,
+    "learning_rate": 0.0001,
     "weight_decay" : 0.05,
     'betas' : (0.9, 0.999),
     "classes" : 1,
