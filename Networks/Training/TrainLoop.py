@@ -374,7 +374,7 @@ if __name__ == "__main__":
     'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 16,
-    "batch_size": 32 # efficientnet_v2_s can max do 32 before running our of mem.
+    "batch_size": 64 # efficientnet_v2_s can max do 32 before running our of mem.
     }
 
     # Build, train and analyze the model with the pipeline
