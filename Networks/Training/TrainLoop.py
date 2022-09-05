@@ -128,9 +128,14 @@ def make_loader(batch_size, weights, attribute):
 
     #Should be in config
     data_transforms = {
-    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)]), 
+    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45))]), 
     'test': transforms.Compose([weights.transforms()])
     }
+
+    # data_transforms = {
+    # 'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)]), 
+    # 'test': transforms.Compose([weights.transforms()])
+    # }
 
     # Going into make loader -------------------------------
 
@@ -149,7 +154,7 @@ def make_loader(batch_size, weights, attribute):
     image_datasets['train'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=True , transform=data_transforms['train'])
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
-    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['train']) # JUST TO SEE!!! 
+    image_datasets['test'] = CustomImageDataset(attribute_dict, attribute, img_dir, train=False , transform=data_transforms['test']) # JUST TO SEE!!! 
     dataloaders['test'] = DataLoader(image_datasets['test'], batch_size=batch_size, shuffle=True) #just set False...
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
@@ -368,7 +373,7 @@ if __name__ == "__main__":
     "weight_decay" : 0.05,
     'betas' : (0.9, 0.999),
     "classes" : 1,
-    "epochs": 32,
+    "epochs": 16,
     "batch_size": 32 # efficientnet_v2_s can max do 32 before running our of mem.
     }
 
