@@ -373,8 +373,8 @@ if __name__ == "__main__":
     "weight_decay" : 0.05,
     'betas' : (0.9, 0.999),
     "classes" : 1,
-    "epochs": 16,
-    "batch_size": 8 # efficientnet_v2_s can max do 32 before running our of mem.
+    "epochs": 4, # try with 4 or lower learning rate even more...
+    "batch_size": 8 # 8 is good
     }
 
     # Build, train and analyze the model with the pipeline
