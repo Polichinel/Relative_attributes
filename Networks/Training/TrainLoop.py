@@ -128,7 +128,7 @@ def make_loader(batch_size, weights, attribute):
 
     #Should be in config
     data_transforms = {
-    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.1, hue=.1)]), 
+    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.25, hue=.1)]), 
     'test': transforms.Compose([weights.transforms()])
     }
 
@@ -369,7 +369,7 @@ if __name__ == "__main__":
     hyperparameters = {
     "model_name" : model_name,
     "attribute" : attribute,
-    "learning_rate": 0.00005,
+    "learning_rate": 0.0001,
     "weight_decay" : 0.01,
     'betas' : (0.9, 0.999),
     "classes" : 1,
