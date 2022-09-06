@@ -370,7 +370,7 @@ if __name__ == "__main__":
     "model_name" : model_name,
     "attribute" : attribute,
     "learning_rate": 0.0001,
-    "weight_decay" : 0.05,
+    "weight_decay" : 0.01,
     'betas' : (0.9, 0.999),
     "classes" : 1,
     "epochs": 4, # try with 4 or lower learning rate even more...
