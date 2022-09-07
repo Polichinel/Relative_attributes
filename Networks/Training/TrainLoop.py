@@ -375,7 +375,7 @@ if __name__ == "__main__":
     "weight_decay" : 0.01,
     'betas' : (0.9, 0.999),
     "classes" : 1,
-    "epochs": 2, # try with 4 or lower learning rate even more...
+    "epochs": 8, # try with 4 or lower learning rate even more...
     "batch_size": 8 # 8 is good
     }
 
