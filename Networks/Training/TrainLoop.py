@@ -339,7 +339,7 @@ if __name__ == "__main__":
         exit()
 
     input_dict2 = {'a' : 'all_negative_emotions_t1',
-                   'b' : 'all_mass_protest_ens',
+                   'b' : 'all_mass_protest',
                    'c' : 'all_militarized',
                    'd' : 'all_urban',
                    'e' : 'all_negative_emotions_t2',
