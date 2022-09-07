@@ -172,12 +172,14 @@ def make(config, model_name):
     model = model_dict[model_name].to(device)
     # wandb.watch(model)
 
+    # NOT re-train all parameters
+    for param in list(model.parameters()):
+        #param.requires_grad = True
+        param.requires_grad = False
+
+
     # new model head for for retraining
     change_head(model_name, model, config['classes'])
-
-    # re-train all parameters
-    for param in list(model.parameters()):
-        param.requires_grad = True
     
     # Make the data
     #dataloaders, dataset_sizes, class_names = make_loader(batch_size=config.batch_size, weights = weights)
