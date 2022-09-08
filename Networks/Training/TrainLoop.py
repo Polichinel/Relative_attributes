@@ -272,7 +272,7 @@ def train(model, train_loader, test_loader, criterion, optimizer, config):
     for epoch in range(config.epochs):             
 
         ### trying this!
-        if epoch == 2: # starting the third epoch we do wnat to trian all 
+        if epoch == 1: # starting the 2nd epoch we do wnat to trian all 
                 print('training all params!')
                 for param in list(model.parameters()):
                     param.requires_grad = True
