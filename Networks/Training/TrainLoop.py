@@ -370,7 +370,7 @@ if __name__ == "__main__":
     print(model_string)
 
     input_string1 = input()
-    if input_string1 in ['a', 'b', 'c', 'd', 'e']:
+    if input_string1 in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']:
         model_name = input_dict1[input_string1]
         print(f'You choose {input_string1} : {model_name}')
 
