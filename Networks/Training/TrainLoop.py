@@ -111,39 +111,39 @@ def get_models():
 def change_head(model_name, model, num_classes):
 
     if model_name == 'convnext_tiny':
-        model.classifier[2] = nn.Linear(model.classifier[2].in_features, num_classes).to(device)
+        model.classifier[2] = nn.Linear(model.classifier[2].in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.classifier[2]}')
 
     elif model_name == 'efficientnet_v2_s':
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes).to(device)
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.classifier[1]}')
 
     elif model_name == 'regnet_x_8gf':
-        model.fc = nn.Linear(model.fc.in_features, num_classes).to(device)
+        model.fc = nn.Linear(model.fc.in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.fc}')
 
     elif model_name == 'swin_t':
-        model.head = nn.Linear(model.head.in_features, num_classes).to(device)
+        model.head = nn.Linear(model.head.in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.head}')
 
     elif model_name == 'wide_resnet50_2':
-        model.fc = nn.Linear(model.fc.in_features, num_classes).to(device)
+        model.fc = nn.Linear(model.fc.in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.fc}')
 
     elif model_name == 'squeezenet1_1' :
-        model.classifier[1] = nn.Conv2d(model.classifier[1].in_channels, num_classes, kernel_size=(1, 1), stride=(1, 1)).to(device)
+        model.classifier[1] = nn.Conv2d(model.classifier[1].in_channels, num_classes, kernel_size=(1, 1), stride=(1, 1), bias=False).to(device)
         print(f'new head: {model.classifier[1]}')
 
     elif model_name == 'shufflenet_v2_x0_5' :
-        model.fc = nn.Linear(model.fc.in_features, num_classes).to(device)
+        model.fc = nn.Linear(model.fc.in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.fc}')
 
     elif model_name == 'mnasnet0_5' :
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes).to(device)
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.classifier[1]}')    
 
     elif model_name == 'mobilenet_v3_small' :
-        model.classifier[3] = nn.Linear(model.classifier[3].in_features, num_classes).to(device)
+        model.classifier[3] = nn.Linear(model.classifier[3].in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.classifier[3]}')
 
     else:
