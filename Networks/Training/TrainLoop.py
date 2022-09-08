@@ -278,6 +278,10 @@ def test(model, test_loader):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
 
+            #
+            outputs = (outputs - outputs.mean())/outputs.std() # experiment...
+            #
+
             test_loss = test_criterion(outputs.squeeze(), labels)
             RMSE_list.append(torch.sqrt(test_loss).detach().cpu().numpy().item())
 
