@@ -28,6 +28,12 @@ from torchvision.models import regnet_x_8gf, RegNet_X_8GF_Weights
 from torchvision.models import swin_t, Swin_T_Weights
 from torchvision.models import wide_resnet50_2, Wide_ResNet50_2_Weights
 
+# new models - low parameter models..
+from torchvision.models import squeezenet1_1, SqueezeNet1_1_Weights
+from torchvision.models import shufflenet_v2_x0_5, ShuffleNet_V2_X0_5_Weights
+from torchvision.models import mnasnet0_5, MNASNet0_5_Weights
+from torchvision.models import mobilenet_v3_small, MobileNet_V3_Small_Weights
+
 import wandb
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -82,13 +88,21 @@ def get_models():
                 'efficientnet_v2_s' : EfficientNet_V2_S_Weights.DEFAULT,
                 'regnet_x_8gf' : RegNet_X_8GF_Weights.DEFAULT,
                 'swin_t' : Swin_T_Weights.DEFAULT,
-                'wide_resnet50_2' : Wide_ResNet50_2_Weights.DEFAULT}
+                'wide_resnet50_2' : Wide_ResNet50_2_Weights.DEFAULT,
+                'squeezenet1_1' : SqueezeNet1_1_Weights.DEFAULT,
+                'shufflenet_v2_x0_5' : ShuffleNet_V2_X0_5_Weights.DEFAULT,
+                'mnasnet0_5' : MNASNet0_5_Weights.DEFAULT,
+                'mobilenet_v3_small' : MobileNet_V3_Small_Weights.DEFAULT}
 
     model_dict = {'convnext_tiny': convnext_tiny(weights = weight_dict['convnext_tiny']).to(device),
                 'efficientnet_v2_s' : efficientnet_v2_s(weights = weight_dict['efficientnet_v2_s']).to(device),
                 'regnet_x_8gf' : regnet_x_8gf(weights = weight_dict['regnet_x_8gf']).to(device),
                 'swin_t' : swin_t(weights = weight_dict['swin_t']).to(device),
-                'wide_resnet50_2' : wide_resnet50_2(weights = weight_dict['wide_resnet50_2']).to(device)}
+                'wide_resnet50_2' : wide_resnet50_2(weights = weight_dict['wide_resnet50_2']).to(device),
+                'squeezenet1_1' : squeezenet1_1(weights = weight_dict['squeezenet1_1']).to(device),
+                'shufflenet_v2_x0_5' : shufflenet_v2_x0_5(weights = weight_dict['shufflenet_v2_x0_5']).to(device),
+                'mnasnet0_5' : mnasnet0_5(weights = weight_dict['mnasnet0_5']).to(device),
+                'mobilenet_v3_small' : mobilenet_v3_small(weights = weight_dict['mobilenet_v3_small']).to(device),}
 
     return(weight_dict, model_dict)
 
@@ -115,6 +129,22 @@ def change_head(model_name, model, num_classes):
     elif model_name == 'wide_resnet50_2':
         model.fc = nn.Linear(model.fc.in_features, num_classes).to(device)
         print(f'new head: {model.fc}')
+
+    elif model_name == 'squeezenet1_1' :
+        model.classifier[1] = nn.Conv2d(model.classifier[1].in_channels, num_classes, kernel_size=(1, 1), stride=(1, 1)).to(device)
+        print(f'new head: {model.classifier[1]}')
+
+    elif model_name == 'shufflenet_v2_x0_5' :
+        model.fc = nn.Linear(model.fc.in_features, num_classes).to(device)
+        print(f'new head: {model.fc}')
+
+    elif model_name == 'mnasnet0_5' :
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes).to(device)
+        print(f'new head: {model.classifier[1]}')    
+
+    elif model_name == 'mobilenet_v3_small' :
+        model.classifier[3] = nn.Linear(model.classifier[3].in_features, num_classes).to(device)
+        print(f'new head: {model.classifier[3]}')
 
     else:
         print('Unddefined model name...')
@@ -279,7 +309,7 @@ def test(model, test_loader):
             outputs = model(images)
 
             #
-            outputs = (outputs - outputs.mean())/outputs.std() # experiment...
+            # outputs = (outputs - outputs.mean())/outputs.std() # experiment... maybe works. BUT THEN IT MUST ALSO BE IN THE TEST AND PRED LOOP
             #
 
             test_loss = test_criterion(outputs.squeeze(), labels)
@@ -324,10 +354,14 @@ if __name__ == "__main__":
     wandb.login()
 
     input_dict1 = {'a': 'convnext_tiny',
-                  'b': 'efficientnet_v2_s',
-                  'c': 'regnet_x_8gf',
+                  'b' : 'efficientnet_v2_s',
+                  'c' : 'regnet_x_8gf',
                   'd' : 'swin_t',
-                  'e' : 'wide_resnet50_2'}
+                  'e' : 'wide_resnet50_2',
+                  'f' : 'squeezenet1_1',
+                  'g' : 'shufflenet_v2_x0_5',
+                  'h' : 'mnasnet0_5',
+                  'i' : 'mobilenet_v3_small'}
 
     model_string = f"Choose model:\n "
     for k in input_dict1.keys():
