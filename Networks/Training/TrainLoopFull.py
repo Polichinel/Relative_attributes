@@ -1,11 +1,9 @@
 import numpy as np
-#import pandas as pd
 import pickle
 import time
 import os
 import copy
 import sys
-#import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
@@ -24,6 +22,12 @@ from torchvision.models import regnet_x_8gf, RegNet_X_8GF_Weights
 from torchvision.models import swin_t, Swin_T_Weights
 from torchvision.models import wide_resnet50_2, Wide_ResNet50_2_Weights
 
+# new models - low parameter models..
+from torchvision.models import squeezenet1_1, SqueezeNet1_1_Weights
+from torchvision.models import shufflenet_v2_x0_5, ShuffleNet_V2_X0_5_Weights
+from torchvision.models import mnasnet0_5, MNASNet0_5_Weights
+from torchvision.models import mobilenet_v3_small, MobileNet_V3_Small_Weights
+
 import wandb
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -40,9 +44,9 @@ print(torchvision.__version__)
 class CustomImageDataset(Dataset):
     def __init__(self, attribute_dict, attribute, img_dir, transform=None, target_transform=None):
 
-        self.img_labels = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_mean']))) # which is not a label but a score.. # you do not handles nans right now... 
-        self.img_std = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_std']))) # you do not handles nans right now...
-        
+        self.img_labels = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_mean']))) 
+        self.img_std = np.array(list(zip(attribute_dict['img'], attribute_dict[f'{attribute}_ens_std']))) 
+
         self.img_dir = img_dir
         self.transform = transform
         self.target_transform = target_transform
@@ -68,13 +72,21 @@ def get_models():
                 'efficientnet_v2_s' : EfficientNet_V2_S_Weights.DEFAULT,
                 'regnet_x_8gf' : RegNet_X_8GF_Weights.DEFAULT,
                 'swin_t' : Swin_T_Weights.DEFAULT,
-                'wide_resnet50_2' : Wide_ResNet50_2_Weights.DEFAULT}
+                'wide_resnet50_2' : Wide_ResNet50_2_Weights.DEFAULT,
+                'squeezenet1_1' : SqueezeNet1_1_Weights.DEFAULT,
+                'shufflenet_v2_x0_5' : ShuffleNet_V2_X0_5_Weights.DEFAULT,
+                'mnasnet0_5' : MNASNet0_5_Weights.DEFAULT,
+                'mobilenet_v3_small' : MobileNet_V3_Small_Weights.DEFAULT}
 
     model_dict = {'convnext_tiny': convnext_tiny(weights = weight_dict['convnext_tiny']).to(device),
                 'efficientnet_v2_s' : efficientnet_v2_s(weights = weight_dict['efficientnet_v2_s']).to(device),
                 'regnet_x_8gf' : regnet_x_8gf(weights = weight_dict['regnet_x_8gf']).to(device),
                 'swin_t' : swin_t(weights = weight_dict['swin_t']).to(device),
-                'wide_resnet50_2' : wide_resnet50_2(weights = weight_dict['wide_resnet50_2']).to(device)}
+                'wide_resnet50_2' : wide_resnet50_2(weights = weight_dict['wide_resnet50_2']).to(device),
+                'squeezenet1_1' : squeezenet1_1(weights = weight_dict['squeezenet1_1']).to(device),
+                'shufflenet_v2_x0_5' : shufflenet_v2_x0_5(weights = weight_dict['shufflenet_v2_x0_5']).to(device),
+                'mnasnet0_5' : mnasnet0_5(weights = weight_dict['mnasnet0_5']).to(device),
+                'mobilenet_v3_small' : mobilenet_v3_small(weights = weight_dict['mobilenet_v3_small']).to(device),}
 
     return(weight_dict, model_dict)
 
@@ -83,24 +95,40 @@ def get_models():
 def change_head(model_name, model, num_classes):
 
     if model_name == 'convnext_tiny':
-        model.classifier[2] = nn.Linear(model.classifier[2].in_features, num_classes).to(device)
+        model.classifier[2] = nn.Linear(model.classifier[2].in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.classifier[2]}')
 
     elif model_name == 'efficientnet_v2_s':
-        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes).to(device)
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.classifier[1]}')
 
     elif model_name == 'regnet_x_8gf':
-        model.fc = nn.Linear(model.fc.in_features, num_classes).to(device)
+        model.fc = nn.Linear(model.fc.in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.fc}')
 
     elif model_name == 'swin_t':
-        model.head = nn.Linear(model.head.in_features, num_classes).to(device)
+        model.head = nn.Linear(model.head.in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.head}')
 
     elif model_name == 'wide_resnet50_2':
-        model.fc = nn.Linear(model.fc.in_features, num_classes).to(device)
+        model.fc = nn.Linear(model.fc.in_features, num_classes, bias=False).to(device)
         print(f'new head: {model.fc}')
+
+    elif model_name == 'squeezenet1_1' :
+        model.classifier[1] = nn.Conv2d(model.classifier[1].in_channels, num_classes, kernel_size=(1, 1), stride=(1, 1), bias=False).to(device)
+        print(f'new head: {model.classifier[1]}')
+
+    elif model_name == 'shufflenet_v2_x0_5' :
+        model.fc = nn.Linear(model.fc.in_features, num_classes, bias=False).to(device)
+        print(f'new head: {model.fc}')
+
+    elif model_name == 'mnasnet0_5' :
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes, bias=False).to(device)
+        print(f'new head: {model.classifier[1]}')    
+
+    elif model_name == 'mobilenet_v3_small' :
+        model.classifier[3] = nn.Linear(model.classifier[3].in_features, num_classes, bias=False).to(device)
+        print(f'new head: {model.classifier[3]}')
 
     else:
         print('Unddefined model name...')
@@ -109,14 +137,16 @@ def change_head(model_name, model, num_classes):
 # data loader
 def make_loader(batch_size, weights, attribute):
 
-    # this is the thiong that has to change for RA...
-    # need to get attribute
-
-   #Should be in config
+    #Should be in config
     data_transforms = {
-    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.5, hue=.2)]), 
+    'train': transforms.Compose([weights.transforms(), transforms.RandomHorizontalFlip(p=0.5), transforms.RandomRotation(degrees=(0, 45)), transforms.ColorJitter(brightness=.25, hue=.1)]), 
     'val': transforms.Compose([weights.transforms()])
     }
+
+    # Going into make loader -------------------------------
+
+    #dict_dir = '/home/simon/Documents/Bodies/data/RA/dfs/' #local
+    #img_dir = '/media/simon/Seagate Expansion Drive/images_spanner' #local
 
     dict_dir = '/home/projects/ku_00017/data/raw/bodies/RA_annotations/' # computerome
     img_dir = '/home/projects/ku_00017/data/raw/bodies/images_spanner' # computerome
@@ -127,16 +157,17 @@ def make_loader(batch_size, weights, attribute):
     dataloaders = {}
     image_datasets = {}
     
-    #!!! Not the the only difference now is the transfomation applied. the images are here the same.
+    # it is now the same dataset just with different transformations
     image_datasets['train'] = CustomImageDataset(attribute_dict, attribute, img_dir, transform=data_transforms['train'])
     dataloaders['train'] = DataLoader(image_datasets['train'], batch_size=batch_size, shuffle=True)
 
-    image_datasets['val'] = CustomImageDataset(attribute_dict, attribute, img_dir, transform=data_transforms['val']) 
-    dataloaders['val'] = DataLoader(image_datasets['val'], batch_size=batch_size, shuffle=True)
+    image_datasets['val'] = CustomImageDataset(attribute_dict, attribute, img_dir, transform=data_transforms['val']) # JUST TO SEE!!! 
+    dataloaders['val'] = DataLoader(image_datasets['val'], batch_size=batch_size, shuffle=True) #just set False...
 
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
+    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
 
-    return dataloaders, dataset_sizes #class_names # what did you use class names for?
+    return dataloaders, dataset_sizes 
+
 
 def make(config, model_name):
 
@@ -148,27 +179,32 @@ def make(config, model_name):
     model = model_dict[model_name].to(device)
     # wandb.watch(model)
 
+    # NOT re-train all parameters
+    for param in list(model.parameters()):
+        #param.requires_grad = True
+        param.requires_grad = False
+
+
     # new model head for for retraining
     change_head(model_name, model, config['classes'])
-
-    # re-train all parameters
-    for param in list(model.parameters()):
-        param.requires_grad = True
     
-    # Make the data.. Why here?
+    # Make the data
+    #dataloaders, dataset_sizes, class_names = make_loader(batch_size=config.batch_size, weights = weights)
     dataloaders, dataset_sizes = make_loader(batch_size=config.batch_size,  weights = weights, attribute = config.attribute)
     
     # Make the loss and optimizer
+    #criterion = nn.CrossEntropyLoss()
     criterion = nn.MSELoss()
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=config.learning_rate, weight_decay = config.weight_decay, betas = config.betas)
 
     return model, criterion, optimizer, dataloaders, dataset_sizes #, class_names
 
+
 def train_log(loss, example_ct, epoch):
     # Where the magic happens
     wandb.log({"epoch": epoch, "loss": loss}, step=example_ct)
-    print(f"Loss after " + str(example_ct).zfill(5) + f" examples: {loss:.3f}")
+    print(f"Loss after " + str(example_ct).zfill(5) + f" examples: {loss:.3f}.")
 
 
 def train_batch(images, labels, model, optimizer, criterion):
@@ -188,23 +224,33 @@ def train_batch(images, labels, model, optimizer, criterion):
     return loss
 
 
-def train(model, loader, criterion, optimizer, config):
+def train(model, train_loader, criterion, optimizer, config):
     # Tell wandb to watch what the model gets up to: gradients, weights, and more!
     wandb.watch(model, criterion, log="all", log_freq=10)
 
     # Run training and track with wandb
-    total_batches = len(loader) * config.epochs
     example_ct = 0  # number of examples seen
     batch_ct = 0
     running_loss = 0.0
+    train_RMSE_list = [] # only used in the last round
 
-    for epoch in range(config.epochs):
-        for _, (images, labels) in enumerate(loader):
+    for epoch in range(config.epochs):             
+
+        ### trying this!
+        if epoch == 1: # starting the 2nd epoch we do wnat to trian all 
+                print('training all params!')
+                for param in list(model.parameters()):
+                    param.requires_grad = True
+                   
+        for _, (images, labels) in enumerate(train_loader):
 
             loss = train_batch(images, labels, model, optimizer, criterion)
+        
+            if epoch == config.epochs-1: # if it is the last round
+                train_RMSE_list.append(torch.sqrt(loss).detach().cpu().numpy().item())
+
             example_ct +=  len(images)
             batch_ct += 1
-
             running_loss += loss
 
             # Report metrics every 20th batch - not running average right now
@@ -212,10 +258,13 @@ def train(model, loader, criterion, optimizer, config):
                 #train_log(loss, example_ct, epoch) # this is the wand part
                 train_log(running_loss/100, example_ct, epoch)
                 running_loss = 0.0 # reset
+    
+    train_RMSE_array = np.array(train_RMSE_list)
+    wandb.log({"train_rmse": train_RMSE_array.mean()})
+    wandb.log({"train_rmse_dist": train_RMSE_array})
 
-
-
-def test(model, loader): 
+# this is inasmple now...
+def test(model, test_loader): 
     model.eval()
     test_criterion = nn.MSELoss()
 
@@ -224,49 +273,45 @@ def test(model, loader):
         total = 0
         RMSE_list = []
 
-        for images, labels in loader:
+        for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
 
-            RMSE_loss = torch.sqrt(test_criterion(outputs.squeeze().cpu(), labels.cpu()))
-            RMSE_list.append(RMSE_loss.detach().numpy().item())
+            test_loss = test_criterion(outputs.squeeze(), labels)
+            RMSE_list.append(torch.sqrt(test_loss).detach().cpu().numpy().item())
 
             total += labels.size(0) #so now you get the number of images - but not the number of mini batches. This is ok when you do not use it to norm.
 
         RMSE_array = np.array(RMSE_list)
-        print(f"Average RMSE of the model on the {total} images (in-sample): {RMSE_array.mean()}")
-        wandb.log({"rmse": RMSE_array.mean()})
-        wandb.log({"rmse_dist": RMSE_array})
+        print(f"Average RMSE of the model on the {total} insample_val images: {RMSE_array.mean()}")
+        wandb.log({"insample_val_rmse": RMSE_array.mean()})
+        wandb.log({"insample_val_rmse_dist": RMSE_array})
 
     # Save the model in the exchangeable ONNX format
     torch.onnx.export(model, images, "model.onnx")
     wandb.save("model.onnx")
 
 
-
 def model_pipeline(hyperparameters):
 
     # tell wandb to get started
-    with wandb.init(project="RA_full", entity="nornir", config=hyperparameters): #new projrct name!!!
+    with wandb.init(project="RA_experiments_new", entity="nornir", config=hyperparameters): #new projrct name!!!
       # access all HPs through wandb.config, so logging matches execution!
       config = wandb.config
 
       model_name = config['model_name']
 
       # make the model, data, and optimization problem
-      model, criterion, optimizer, dataloaders, dataset_size = make(config, model_name)
+      model, criterion, optimizer, dataloaders, dataset_sizes = make(config, model_name)
       print(model)
 
-      # CHANGE!!------------------------
       # and use them to train the model
       train(model, dataloaders['train'], criterion, optimizer, config)
 
-      # CHANGE!!------------------------
       # and test its final performance
-      test(model, dataloaders['val'])
+      test(model, dataloaders['test'])
 
     return model
-
 
 
 if __name__ == "__main__":
@@ -274,10 +319,14 @@ if __name__ == "__main__":
     wandb.login()
 
     input_dict1 = {'a': 'convnext_tiny',
-                  'b': 'efficientnet_v2_s',
-                  'c': 'regnet_x_8gf',
+                  'b' : 'efficientnet_v2_s',
+                  'c' : 'regnet_x_8gf',
                   'd' : 'swin_t',
-                  'e' : 'wide_resnet50_2'}
+                  'e' : 'wide_resnet50_2',
+                  'f' : 'squeezenet1_1',
+                  'g' : 'shufflenet_v2_x0_5',
+                  'h' : 'mnasnet0_5',
+                  'i' : 'mobilenet_v3_small'}
 
     model_string = f"Choose model:\n "
     for k in input_dict1.keys():
@@ -286,7 +335,7 @@ if __name__ == "__main__":
     print(model_string)
 
     input_string1 = input()
-    if input_string1 in ['a', 'b', 'c', 'd', 'e']:
+    if input_string1 in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']:
         model_name = input_dict1[input_string1]
         print(f'You choose {input_string1} : {model_name}')
 
@@ -295,7 +344,7 @@ if __name__ == "__main__":
         exit()
 
     input_dict2 = {'a' : 'all_negative_emotions_t1',
-                   'b' : 'all_mass_protest_ens',
+                   'b' : 'all_mass_protest',
                    'c' : 'all_militarized',
                    'd' : 'all_urban',
                    'e' : 'all_negative_emotions_t2',
@@ -326,15 +375,21 @@ if __name__ == "__main__":
     "model_name" : model_name,
     "attribute" : attribute,
     "learning_rate": 0.0001,
-    "weight_decay" : 0.05,
+    "weight_decay" : 0.01,
     'betas' : (0.9, 0.999),
     "classes" : 1,
-    "epochs": 32,
-    "batch_size": 64
+    "epochs": 2, # 2 epochs is enough. Overfits efter 4-8
+    "batch_size": 8 # 8 is good
     }
 
     # Build, train and analyze the model with the pipeline
     model = model_pipeline(hyperparameters)
 
-    PATH = f"/home/projects/ku_00017/people/simpol/scripts/bodies/Relative_attributes/Networks/Done_models/{model_name}_{attribute}.pth"
-    torch.save(model.state_dict(), PATH)
+    # save model
+    done_model_dir = "/home/projects/ku_00017/people/simpol/scripts/bodies/Relative_attributes/Networks/Done_models/"
+    PATH_SD = f'{done_model_dir}{model_name}_{attribute}_SD.pth'
+    PATH = f'{done_model_dir}{model_name}_{attribute}.pth'
+    
+    # do both; just in case.
+    torch.save(model.state_dict(), PATH_SD)
+    torch.save(model, PATH)
