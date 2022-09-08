@@ -295,7 +295,7 @@ def test(model, test_loader):
 def model_pipeline(hyperparameters):
 
     # tell wandb to get started
-    with wandb.init(project="RA_experiments_new", entity="nornir", config=hyperparameters): #new projrct name!!!
+    with wandb.init(project="RA_full", entity="nornir", config=hyperparameters): #new projrct name!!!
       # access all HPs through wandb.config, so logging matches execution!
       config = wandb.config
 
