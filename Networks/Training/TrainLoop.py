@@ -271,19 +271,19 @@ def train(model, train_loader, test_loader, criterion, optimizer, config):
 
     for epoch in range(config.epochs):             
 
+        ### trying this!
+        if epoch == 2: # starting the third epoch we do wnat to trian all 
+                for param in list(model.parameters()):
+                    param.requires_grad = True
+                    print('training all params!')
+        ###
+
         for _, (images, labels) in enumerate(train_loader):
 
             loss = train_batch(images, labels, model, optimizer, criterion)
         
             if epoch == config.epochs-1: # if it is the last round
                 train_RMSE_list.append(torch.sqrt(loss).detach().cpu().numpy().item())
-
-            ### trying this!
-            if epoch == 2: # starting the third epoch we do wnat to trian all 
-                    for param in list(model.parameters()):
-                        param.requires_grad = True
-            ###
-
 
             example_ct +=  len(images)
             batch_ct += 1
