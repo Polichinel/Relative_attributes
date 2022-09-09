@@ -388,8 +388,8 @@ if __name__ == "__main__":
     # save model
     done_model_dir = "/home/projects/ku_00017/people/simpol/scripts/bodies/Relative_attributes/Networks/Done_models/"
     path_SD = f'{done_model_dir}{model_name}_{attribute}_SD.pth'
-    path = f'{done_model_dir}{model_name}_{attribute}.pth'
+    #path = f'{done_model_dir}{model_name}_{attribute}.pth'
     
     # do both; just in case.
     torch.save(model.state_dict(), path_SD)
-    torch.save(model, path)
+    #torch.save(model, path)
