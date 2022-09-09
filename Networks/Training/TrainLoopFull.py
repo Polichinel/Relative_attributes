@@ -224,7 +224,7 @@ def train_batch(images, labels, model, optimizer, criterion):
     return loss
 
 
-def train(model, train_loader, criterion, optimizer, config):
+def train(model, model_name, train_loader, criterion, optimizer, config):
     # Tell wandb to watch what the model gets up to: gradients, weights, and more!
     wandb.watch(model, criterion, log="all", log_freq=10)
 
@@ -237,7 +237,7 @@ def train(model, train_loader, criterion, optimizer, config):
     for epoch in range(config.epochs):             
 
         ### trying this!
-        if epoch == 1: # starting the 2nd epoch we do wnat to trian all 
+        if epoch == 1 and model_name != 'efficientnet_v2_s': # starting the 2nd epoch we do wnat to trian all 
                 print('training all params!')
                 for param in list(model.parameters()):
                     param.requires_grad = True
@@ -306,7 +306,7 @@ def model_pipeline(hyperparameters):
       print(model)
 
       # and use them to train the model
-      train(model, dataloaders['train'], criterion, optimizer, config)
+      train(model, model_name, dataloaders['train'], criterion, optimizer, config)
 
       # and test its final performance
       test(model, dataloaders['val'])
@@ -387,9 +387,9 @@ if __name__ == "__main__":
 
     # save model
     done_model_dir = "/home/projects/ku_00017/people/simpol/scripts/bodies/Relative_attributes/Networks/Done_models/"
-    PATH_SD = f'{done_model_dir}{model_name}_{attribute}_SD.pth'
-    PATH = f'{done_model_dir}{model_name}_{attribute}.pth'
+    path_SD = f'{done_model_dir}{model_name}_{attribute}_SD.pth'
+    path = f'{done_model_dir}{model_name}_{attribute}.pth'
     
     # do both; just in case.
-    torch.save(model.state_dict(), PATH_SD)
-    torch.save(model, PATH)
+    torch.save(model.state_dict(), path_SD)
+    torch.save(model, path)
