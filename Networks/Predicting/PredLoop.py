@@ -205,12 +205,9 @@ def predict(model, dataloader):
 def the_loop():
     relevant_models = ['convnext_tiny', 'efficientnet_v2_s', 'swin_t']
 
-    attributes = ['all_negative_emotions_t1_ens_mean', 'all_negative_emotions_t1_ens_std', 
-                'all_mass_protest_ens_mean', 'all_mass_protest_ens_std', 'all_militarized_ens_mean',
-                'all_militarized_ens_std', 'all_urban_ens_mean', 'all_urban_ens_std', 'all_negative_emotions_t2_ens_mean', 
-                'all_negative_emotions_t2_ens_std', 'all_privat_ens_mean', 'all_privat_ens_std', 'all_public_ens_mean', 
-                'all_public_ens_std', 'all_rural_ens_mean', 'all_rural_ens_std', 'all_formal_ens_mean', 'all_formal_ens_std', 
-                'all_damaged_property_ens_mean', 'all_damaged_property_ens_std']
+    attributes = ['all_negative_emotions_t1', 'all_mass_protest', 'all_militarized',
+                'all_urban', 'all_negative_emotions_t2', 'all_privat', 'all_public', 
+                'all_rural', 'all_formal', 'all_damaged_property']
 
 
     data_dir = '/home/projects/ku_00017/data/generated/bodies/ra_outputs/'
