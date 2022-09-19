@@ -196,8 +196,8 @@ def predict(model, dataloader):
             images = images.to(device)
             outputs = model(images)
 
-            image_list += list(image_list[0].detach().cpu().numpy())
-            score_list += list(score_list[0].squeeze().detach().cpu().numpy())
+            image_list += list(img_id)
+            score_list += list(outputs.squeeze().detach().cpu().numpy())
             
     return(image_list, score_list)
 
