@@ -204,14 +204,25 @@ def predict(model, dataloader):
         
         for images, img_id in dataloader:
 
-            print(img_id)
+            print(img_id, end='\r')
                 
             images = images.to(device)
-            outputs = model(images)
-
-            image_list += list(img_id)
-            score_list += list(outputs.squeeze().detach().cpu().numpy())
             
+            try:
+                outputs = model(images)
+
+                # bs > 0
+                #image_list += list(img_id)
+                #score_list += list(outputs.squeeze().detach().cpu().numpy())
+
+                image_list.append(img_id)
+                score_list.append(outputs.detach().cpu().numpy())
+            
+            # if we encounter a grayscal image...
+            except:
+                print(f"Bad img: {img_id}")
+                pass
+
     return(image_list, score_list)
 
 
@@ -233,7 +244,7 @@ def the_loop():
         for attribute in attributes:
             print(f'predicting {attribute}')
 
-            hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 2} # try larger later...
+            hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 1} # try larger later...
             model, dataloader, dataset_size = make(hyperparameters)
 
             print(dataset_size)
