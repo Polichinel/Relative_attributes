@@ -51,15 +51,11 @@ def get_img_id(img_dir):
 
 
 class CustomImageDataset(Dataset):
-    def __init__(self, img_dir, attribute_dict, transform=None):
-
-        #self.img_id = attribute_dict['img'] # img_id + .jpg # THE CULPRIT!!! THESE ARE ONLY THE ANNOTATED IMAGES...
-        # then you don't need the dict at all do you?
+    def __init__(self, img_dir, transform=None):
 
         self.img_id = get_img_id(img_dir)
         self.img_dir = img_dir
         self.transform = transform
-
 
         self.img_dir = img_dir
         self.transform = transform
@@ -155,7 +151,7 @@ def get_model(hyperparameters):
 
 
     # data loader
-def make_loader(batch_size, weights, attribute_dict):
+def make_loader(batch_size, weights ): #, attribute_dict):
 
     data_transform = transforms.Compose([weights.transforms()])
 
@@ -164,7 +160,7 @@ def make_loader(batch_size, weights, attribute_dict):
     #img_dir = '/home/projects/ku_00017/data/raw/bodies/images_spanner' # computerome
 
 
-    image_dataset = CustomImageDataset(img_dir, attribute_dict, transform=data_transform)
+    image_dataset = CustomImageDataset(img_dir, transform=data_transform)
     dataloader = DataLoader(image_dataset, batch_size=batch_size, shuffle=False)
 
     dataset_size = len(image_dataset)
@@ -186,13 +182,13 @@ def make(hyperparameters):
     
     # is this an ok place? 
     #dict_dir = '/home/simon/Documents/Bodies/data/RA/dfs/' # change to computerome location
-    dict_dir = '/home/projects/ku_00017/data/raw/bodies/RA_annotations/' # computerome
+    # dict_dir = '/home/projects/ku_00017/data/raw/bodies/RA_annotations/' # computerome
 
-    with open(f'{dict_dir}ra_ens_annotated_dict.pkl', 'rb') as file:
-        attribute_dict = pickle.load(file)
+    # with open(f'{dict_dir}ra_ens_annotated_dict.pkl', 'rb') as file:
+    #     attribute_dict = pickle.load(file)
 
     # Make the data
-    dataloader, dataset_size = make_loader(batch_size=hyperparameters['batch_size'],  weights = weights, attribute_dict = attribute_dict)
+    dataloader, dataset_size = make_loader(batch_size=hyperparameters['batch_size'],  weights = weights) #, attribute_dict = attribute_dict)
 
     return model, dataloader, dataset_size
 
@@ -207,6 +203,8 @@ def predict(model, dataloader):
     with torch.no_grad():
         
         for images, img_id in dataloader:
+
+            print(img_id)
                 
             images = images.to(device)
             outputs = model(images)
@@ -235,7 +233,7 @@ def the_loop():
         for attribute in attributes:
             print(f'predicting {attribute}')
 
-            hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 32}
+            hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 1} # try larger later...
             model, dataloader, dataset_size = make(hyperparameters)
 
             print(dataset_size)
