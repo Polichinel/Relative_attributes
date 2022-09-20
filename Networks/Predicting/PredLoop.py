@@ -36,12 +36,27 @@ print(torch.__version__)
 print(torchvision.__version__)
 
 
+def get_img_id(img_dir):
+
+    """Creates a list of all image ids/names."""
+
+    img_name_list = []
+    
+    for root, dirs, files in os.walk(img_dir):
+        for img_name in files:
+            if img_name.split('.')[1] == 'jpg':
+                img_name_list.append(img_name)
+
+    return(img_name_list)
+
 
 class CustomImageDataset(Dataset):
     def __init__(self, img_dir, attribute_dict, transform=None):
 
+        #self.img_id = attribute_dict['img'] # img_id + .jpg # THE CULPRIT!!! THESE ARE ONLY THE ANNOTATED IMAGES...
+        # then you don't need the dict at all do you?
 
-        self.img_id = attribute_dict['img'] # img_id + .jpg
+        self.img_id = get_img_id(img_dir)
         self.img_dir = img_dir
         self.transform = transform
 
@@ -146,6 +161,8 @@ def make_loader(batch_size, weights, attribute_dict):
 
     # img_dir = '/media/simon/Seagate Expansion Drive/images_spanner' #local
     img_dir = '/home/projects/ku_00017/data/raw/bodies/images_spanner' # computerome
+    #img_dir = '/home/projects/ku_00017/data/raw/bodies/images_spanner' # computerome
+
 
     image_dataset = CustomImageDataset(img_dir, attribute_dict, transform=data_transform)
     dataloader = DataLoader(image_dataset, batch_size=batch_size, shuffle=False)
@@ -186,8 +203,6 @@ def predict(model, dataloader):
     image_list = []
     score_list = []
 
-    count = 0
-
     # Run the model on some test examples
     with torch.no_grad():
         
@@ -222,6 +237,9 @@ def the_loop():
 
             hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 32}
             model, dataloader, dataset_size = make(hyperparameters)
+
+            print(dataset_size)
+
             image_list, score_list = predict(model, dataloader)
 
             score_dict[f'{attribute}_score'] = score_list,
