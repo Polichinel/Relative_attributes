@@ -213,7 +213,7 @@ def the_loop():
     data_dir = '/home/projects/ku_00017/data/generated/bodies/ra_outputs/'
 
     for model_name in relevant_models:
-        print(f'{model} running...')
+        print(f'{model_name} running...')
         
         score_dict = {}
         
