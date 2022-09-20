@@ -213,22 +213,26 @@ def the_loop():
     data_dir = '/home/projects/ku_00017/data/generated/bodies/ra_outputs/'
 
     for model_name in relevant_models:
+        print(f'{model} running...')
         
         score_dict = {}
         
         for attribute in attributes:
+            print(f'predicting {attribute}')
 
             hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 32}
             model, dataloader, dataset_size = make(hyperparameters)
             image_list, score_list = predict(model, dataloader)
 
-            score_dict['attribute_score'] = score_list,
-            score_dict['attribute_id'] = image_list # not sure you get the rigth order so this is just for debug really.
+            score_dict[f'{attribute}_score'] = score_list,
+            score_dict[f'{attribute}_id'] = image_list # not sure you get the rigth order so this is just for debug really.
 
         dict_name = f'{model_name}_score_dict.pkl'
 
         with open(f'{data_dir}{dict_name}', 'wb') as file:
             pickle.dump(score_dict, file)
+
+        print('Pickled and done!')
 
 
 if __name__ == "__main__":
