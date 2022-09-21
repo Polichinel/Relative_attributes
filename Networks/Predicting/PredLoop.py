@@ -69,8 +69,8 @@ class CustomImageDataset(Dataset):
         image = read_image(img_path)
         
         #Better than the try
-        if images.shape[0] == 1:
-            images = images.expand(3, -1, -1)
+        if image.shape[0] == 1:
+            image = image.expand(3, -1, -1)
 
 
         if self.transform:
