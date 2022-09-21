@@ -209,8 +209,8 @@ def predict(model, dataloader):
             images = images.to(device)
 
             #Better than the try
-            if images.shape[1] == 1:
-                images = images.expand(-1, 3, -1, -1)
+            if images.shape[0] == 1:
+                images = images.expand(3, -1, -1)
 
             else:
                 continue
