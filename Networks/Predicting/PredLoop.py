@@ -68,6 +68,11 @@ class CustomImageDataset(Dataset):
         img_path = os.path.join(self.img_dir, img_id)
         image = read_image(img_path)
         
+        #Better than the try
+        if images.shape[0] == 1:
+            images = images.expand(3, -1, -1)
+
+
         if self.transform:
             image = self.transform(image)
 
@@ -207,13 +212,6 @@ def predict(model, dataloader):
             print(img_id, end='\r')
                 
             images = images.to(device)
-
-            #Better than the try
-            if images.shape[0] == 1:
-                images = images.expand(3, -1, -1)
-
-            else:
-                continue
             
             # try:
             outputs = model(images)
