@@ -207,21 +207,30 @@ def predict(model, dataloader):
             print(img_id, end='\r')
                 
             images = images.to(device)
+
+            #Better than the try
+            if images.shape[1] == 1:
+                images = images.expand(-1, 3, -1, -1)
+
+            else:
+                continue
             
-            try:
-                outputs = model(images)
+            # try:
+            outputs = model(images)
 
                 # bs > 0
                 #image_list += list(img_id)
                 #score_list += list(outputs.squeeze().detach().cpu().numpy())
 
-                image_list.append(img_id)
-                score_list.append(outputs.detach().cpu().numpy())
+
+
+            image_list.append(img_id)
+            score_list.append(outputs.detach().cpu().numpy())
             
             # if we encounter a grayscal image...
-            except:
-                print(f"Bad img: {img_id}")
-                pass
+            # except:
+            #     print(f"Bad img: {img_id}")
+            #     pass
 
     return(image_list, score_list)
 
