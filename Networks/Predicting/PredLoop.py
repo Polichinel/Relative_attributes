@@ -251,7 +251,7 @@ def the_loop():
         for attribute in attributes:
             print(f'predicting {attribute}')
 
-            hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 1} # try larger later...
+            hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 64} # try larger later...
             model, dataloader, dataset_size = make(hyperparameters)
 
             print(dataset_size)
