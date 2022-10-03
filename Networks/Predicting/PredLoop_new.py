@@ -249,6 +249,8 @@ def the_loop(model_name):
         with open(f'{data_dir}{tuple_name}', 'wb') as file:
             pickle.dump(attribute_tuple, file)
 
+        print(f'Backup {tuple_name} pickled')
+
     dict_name = f'{model_name}_score_dict_full.pkl'
 
     with open(f'{data_dir}{dict_name}', 'wb') as file:
