@@ -146,11 +146,15 @@ def get_model(hyperparameters):
     pt_model_dir = "/home/projects/ku_00017/people/simpol/scripts/bodies/Relative_attributes/Networks/Done_models/"
     pt_model_name = f'{model_name}_{attribute}'
 
+    pt_model_path = f'{pt_model_dir}{pt_model_name}_SD.pth'
+
     model = model_dict[model_name]
     change_head(model_name, model, 1)
     
-    model.load_state_dict(torch.load(f'{pt_model_dir}{pt_model_name}_SD.pth')) #, map_location=torch.device('cpu'))) #!!!! Remove or change map_location
+    model.load_state_dict(torch.load(pt_model_path)) #, map_location=torch.device('cpu'))) #!!!! Remove or change map_location
     model.eval()
+
+    print(f'{pt_model_path} loaded...')
 
     return(model, weight_dict)
 
@@ -218,51 +222,48 @@ def predict(model, dataloader):
 
 
 
-def the_loop(model_name):
+def get_tuple(model_name, attribute):
 
-    attributes = ['all_negative_emotions_t1', 'all_mass_protest', 'all_militarized',
-                'all_urban', 'all_negative_emotions_t2', 'all_privat', 'all_public', 
-                'all_rural', 'all_formal', 'all_damaged_property']
 
     data_dir = '/home/projects/ku_00017/data/generated/bodies/ra_outputs/'
 
-    print(f'{model_name} running...')
-    
-    score_dict = {}
-    
-    for i, attribute in enumerate(attributes):
-        print(f'predicting {attribute}, {i}/{len(attributes)}')
+    print(f'{model_name} running...')  
+    print(f'predicting {attribute}')
 
-        hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 1} # Just do one at a time...
-        model, dataloader, dataset_size = make(hyperparameters)
+    hyperparameters = {"model_name" : model_name, "attribute" : attribute, "batch_size": 1} # Just do one at a time...
+    model, dataloader, dataset_size = make(hyperparameters)
 
-        print(f' {dataset_size}')
+    print(f'{dataset_size}')
 
-        image_list, score_list = predict(model, dataloader)
+    image_list, score_list = predict(model, dataloader)
 
-        score_dict[f'{attribute}_score'] = score_list,
-        score_dict[f'{attribute}_id'] = image_list # not sure you get the rigth order so this is just for debug really.
+    #score_dict[f'{attribute}_score'] = score_list,
+    #score_dict[f'{attribute}_id'] = image_list # not sure you get the rigth order so this is just for debug really.
 
-        # running backup
-        attribute_tuple = (image_list, score_list)
-        tuple_name = f'{model_name}_{attribute}_tuple.pkl'
-        with open(f'{data_dir}{tuple_name}', 'wb') as file:
-            pickle.dump(attribute_tuple, file)
+    # running backup
+    attribute_tuple = (image_list, score_list)
+    tuple_name = f'{model_name}_{attribute}_tuple.pkl'
 
-        print(f'Backup {tuple_name} pickled')
+    with open(f'{data_dir}{tuple_name}', 'wb') as file:
+        pickle.dump(attribute_tuple, file)
 
-    dict_name = f'{model_name}_score_dict_full.pkl'
+    print(f'{tuple_name} pickled')
 
-    with open(f'{data_dir}{dict_name}', 'wb') as file:
-        pickle.dump(score_dict, file)
+    # dict_name = f'{model_name}_score_dict_full.pkl'
 
-    print('Pickled and done!')
+    # with open(f'{data_dir}{dict_name}', 'wb') as file:
+    #     pickle.dump(score_dict, file)
+
+    # # print('Pickled and done!')
 
 
 
 if __name__ == "__main__":
 
-    model_letter = input('Choose model: a) convnext, b) efficient or c) swin')
+
+    # first model
+
+    model_letter = input('Choose model:\n a) convnext\n b) efficient\n c) swin\n')
     
     if model_letter == 'a':
         model_name = 'convnext_tiny'
@@ -277,4 +278,29 @@ if __name__ == "__main__":
         print('wrong input...')
         sys.exit
 
-    the_loop(model_name)
+
+    # then attribute
+
+    attributes = ['all_negative_emotions_t1', 'all_mass_protest', 'all_militarized',
+                'all_urban', 'all_negative_emotions_t2', 'all_privat', 'all_public', 
+                'all_rural', 'all_formal', 'all_damaged_property']
+
+
+    att_string = (f'Choose attribute:\n 0) all_negative_emotions_t1\n 1) all_mass_protest\n 2) all_militarized\n'
+                f' 3) all_urban\n 4) all_negative_emotions_t2\n 5) all_privat\n 6) all_public\n'
+                f' 7) all_rural\n 8) all_formal\n 9) all_damaged_property\n')
+
+    att_idx = input(att_string)
+
+    try:
+        att_idx = int(att_idx)
+        attribute = attributes[att_idx]
+
+    except:
+        print('Wrong input (attribute)...')
+        sys.exit
+
+
+    get_tuple(model_name, attribute)
+
+    print('Done...')
